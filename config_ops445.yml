@@ -1,0 +1,64 @@
+---
+- name: Configure CentOS 7.x VM with GNOME for OPS445 labs
+  hosts: hliu232
+  user: student
+  become: yes
+  vars:
+    lab_dirs:
+      - lab1
+      - lab2
+      - lab3
+      - lab4
+      - lab5
+      - lab6
+      - lab7
+      - lab8
+
+  tasks:
+    - name: Update Apache
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Install extra packages repository
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Remove 'tree' package
+      yum:
+        name: tree
+        state: absent
+
+    - name: Set the hostname to hliu232
+      hostname:
+        name: "hliu232"
+
+    - name: Create a new user hliu232
+      user:
+        name: "hliu232"
+        state: present
+        create_home: yes
+        shell: /bin/bash
+
+    - name: Add hliu232 to sudoers and access without a password
+      lineinfile:
+        path: /etc/sudoers
+        line: "hliu232 ALL=(ALL) NOPASSWD:ALL"
+        state: present
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: allow new user to SSH login without a password
+      authorized_key:
+        user: "hliu232"
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+    - name: Set up directories for organizing labs
+      file:
+        path: "/home/hliu232/ops445/{{ item }}"
+        state: directory
+        owner: "hliu232"
+        group: "hliu232"
+      loop: "{{ lab_dirs }}"
+
