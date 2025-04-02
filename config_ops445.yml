@@ -4,6 +4,7 @@
   user: student
   become: yes
   vars:
+    user_name: "hliu232"
     lab_dirs:
       - lab1
       - lab2
@@ -32,11 +33,11 @@
 
     - name: Set the hostname to hliu232
       hostname:
-        name: "hliu232"
+        name: "{{ user_name }}"
 
     - name: Create a new user hliu232
       user:
-        name: "hliu232"
+        name: "{{ user_name }}"
         state: present
         create_home: yes
         shell: /bin/bash
@@ -44,21 +45,21 @@
     - name: Add hliu232 to sudoers and access without a password
       lineinfile:
         path: /etc/sudoers
-        line: "hliu232 ALL=(ALL) NOPASSWD:ALL"
+        line: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
         state: present
         validate: '/usr/sbin/visudo -cf %s'
 
     - name: allow new user to SSH login without a password
       authorized_key:
-        user: "hliu232"
+        user: "{{ user_name }}"
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
     - name: Set up directories for organizing labs
       file:
-        path: "/home/hliu232/ops445/{{ item }}"
+        path: "/home/{{ user_name }}/ops445/{{ item }}"
         state: directory
-        owner: "hliu232"
-        group: "hliu232"
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
       loop: "{{ lab_dirs }}"
 
